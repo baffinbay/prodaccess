@@ -188,7 +188,7 @@ func main() {
 	for {
 		if (err != nil) {
 			log.Printf("Error: %v", err)
-			break
+			return
 		}
 		if (response.RequiredAction != nil) {
 			log.Printf("Required action: %v", response.RequiredAction)
