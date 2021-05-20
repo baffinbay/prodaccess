@@ -57,7 +57,7 @@ func sshLoadCertificate(c string) {
 
 	// OpenSSH requires adding the private key again to load certificates
 	pp := strings.TrimSuffix(cp, "-cert.pub")
-	exec.Command("/usr/bin/env", "ssh-add", pp).Run()
+	exec.Command("/usr/bin/env", "ssh-add", "-c", pp).Run()
 }
 
 func sshGetPublicKey() (string, error) {
