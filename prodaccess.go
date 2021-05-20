@@ -17,19 +17,18 @@ import (
 	"time"
 
 	url "github.com/dhtech/go-openurl"
+	pb "github.com/dhtech/proto/auth"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	pb "github.com/dhtech/proto/auth"
 )
 
 var (
-	grpcService    = flag.String("grpc", "auth.tech.dreamhack.se:443", "Authentication server to use.")
-	tlsServerName  = flag.String("server_name", "auth.tech.dreamhack.se", "TLS server name to verify.")
-	useTls         = flag.Bool("tls", true, "Whether or not to use TLS for the GRPC connection")
-	webUrl         = flag.String("web", "https://auth.tech.dreamhack.se", "Domain to reply to ident requests from")
-	requestVmware  = flag.Bool("vmware", false, "Whether or not to request a VMware certificate")
+	grpcService   = flag.String("grpc", "auth.tech.dreamhack.se:443", "Authentication server to use")
+	tlsServerName = flag.String("server_name", "auth.tech.dreamhack.se", "TLS server name to verify")
+	useTLS        = flag.Bool("tls", true, "Whether or not to use TLS for the GRPC connection")
+	webURL        = flag.String("web", "https://auth.tech.dreamhack.se", "Domain to reply to ident requests from")
 	// TODO(bluecmd): This should be automatic
 	requestBrowser = flag.Bool("browser", false, "Whether or not to request a browser certificate")
 	rsaKeySize     = flag.Int("rsa_key_size", 4096, "When generating RSA keys, use this key size")
@@ -38,7 +37,7 @@ var (
 
 func presentIdent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/plain")
-	w.Header().Add("Access-Control-Allow-Origin", *webUrl)
+	w.Header().Add("Access-Control-Allow-Origin", *webURL)
 	w.Write([]byte(ident))
 }
 
@@ -71,7 +70,7 @@ func generateEcdsaCsr() (string, string, error) {
 		CommonName: "replaced-by-the-server",
 	}
 	tmpl := x509.CertificateRequest{
-		Subject: subj,
+		Subject:            subj,
 		SignatureAlgorithm: x509.ECDSAWithSHA256,
 	}
 	csrb, _ := x509.CreateCertificateRequest(rand.Reader, &tmpl, keyb)
@@ -92,7 +91,7 @@ func generateRsaCsr() (string, string, error) {
 		CommonName: "replaced-by-the-server",
 	}
 	tmpl := x509.CertificateRequest{
-		Subject: subj,
+		Subject:            subj,
 		SignatureAlgorithm: x509.SHA256WithRSA,
 	}
 	csrb, _ := x509.CreateCertificateRequest(rand.Reader, &tmpl, keyb)
@@ -114,7 +113,7 @@ func main() {
 	go mustServeHttp()
 
 	d := grpc.WithInsecure()
-	if *useTls {
+	if *useTLS {
 		d = grpc.WithTransportCredentials(
 			credentials.NewTLS(&tls.Config{
 				ServerName: *tlsServerName,
@@ -135,23 +134,9 @@ func main() {
 	defer cancel()
 
 	ucr := &pb.UserCredentialRequest{
-			ClientValidation: &pb.ClientValidation{
-				Ident: ident,
-			},
-			VaultTokenRequest: &pb.VaultTokenRequest{},
-	}
-
-	vmwarePk := ""
-	if *requestVmware {
-		csr := ""
-		log.Printf("Generating VMware CSR ...")
-		vmwarePk, csr, err = generateEcdsaCsr()
-		if err != nil {
-			log.Fatalf("failed to generate VMware CSR: %v", err)
-		}
-		ucr.VmwareCertificateRequest = &pb.VmwareCertificateRequest{
-			Csr: csr,
-		}
+		ClientValidation: &pb.ClientValidation{
+			Ident: ident,
+		},
 	}
 
 	browserPk := ""
@@ -165,10 +150,6 @@ func main() {
 		ucr.BrowserCertificateRequest = &pb.BrowserCertificateRequest{
 			Csr: csr,
 		}
-	}
-
-	if hasKubectl() {
-		ucr.KubernetesCertificateRequest = &pb.KubernetesCertificateRequest{}
 	}
 
 	sshPkey, err := sshGetPublicKey()
@@ -186,13 +167,13 @@ func main() {
 
 	response, err := stream.Recv()
 	for {
-		if (err != nil) {
+		if err != nil {
 			log.Printf("Error: %v", err)
 			return
 		}
-		if (response.RequiredAction != nil) {
+		if response.RequiredAction != nil {
 			log.Printf("Required action: %v", response.RequiredAction)
-			url.Open(*webUrl + response.RequiredAction.Url)
+			url.Open(*webURL + response.RequiredAction.Url)
 		} else {
 			break
 		}
@@ -201,19 +182,6 @@ func main() {
 
 	if response.SshCertificate != nil {
 		sshLoadCertificate(response.SshCertificate.Certificate)
-	}
-
-	if response.VaultToken != nil {
-		saveVaultToken(response.VaultToken.Token)
-	}
-
-	if response.KubernetesCertificate != nil {
-		saveKubernetesCertificate(response.KubernetesCertificate.Certificate, response.KubernetesCertificate.PrivateKey)
-	}
-
-	if response.VmwareCertificate != nil {
-		full := append([]string{response.VmwareCertificate.Certificate}, response.VmwareCertificate.CaChain...)
-		saveVmwareCertificate(strings.Join(full, "\n"), vmwarePk)
 	}
 
 	if response.BrowserCertificate != nil {

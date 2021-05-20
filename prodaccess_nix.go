@@ -111,7 +111,7 @@ func saveVmwareCertificate(c string, k string) {
 	kf.Write([]byte(k))
 	cp := cf.Name()
 	kp := kf.Name()
-	defer os.Remove(cp)	
+	defer os.Remove(cp)
 	defer os.Remove(kp)
 	cf.Close()
 	kf.Close()
@@ -150,14 +150,14 @@ func saveBrowserCertificate(c string, k string) {
 	}
 }
 
-func isWSL() bool {	
-	u := unix.Utsname{}	
-	_ = unix.Uname(&u)	
-	return strings.Contains(string(u.Release[:]), "Microsoft")	
-}	
+func isWSL() bool {
+	u := unix.Utsname{}
+	_ = unix.Uname(&u)
+	return strings.Contains(string(u.Release[:]), "Microsoft")
+}
 
-func executeWithStdout(cmd ...string) (string, error) {	
-	return executeWithStdoutWithStdin("", cmd...)	
+func executeWithStdout(cmd ...string) (string, error) {
+	return executeWithStdoutWithStdin("", cmd...)
 }
 
 func executeWithStdoutWithStdin(stdin string, cmd ...string) (string, error) {
