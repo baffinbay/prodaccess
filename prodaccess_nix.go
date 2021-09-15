@@ -19,7 +19,7 @@ var (
 	vaultTokenPath  = flag.String("vault_token", "$HOME/.vault-token", "Path to Vault token to update")
 	browserCertPath = flag.String("browser_cert_path", "$HOME/browser-user.pfx", "Path to store Browswer user certificate")
 
-	certAuthority = "@cert-authority *.baffinbay.network ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBACxPOI58VnccJOIdhKe3vax8JvXfstSZTc2861GWlKYoFWEMUHhCPvOxRphYyYsyBYF8ZI7+fO6chpF7I+Cpug1+AADRf1ADtmhTJxXbM8efqoI+PDCJi1noicAQw6t+Pf6oK0q/FERq/gGqV3bfOiz7iAIrxb8FiCvjGzf/fvg0ZvwoA=="
+	certAuthority = "@cert-authority *.baffinbay.network ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAEoUf5ceRV9LeCzj7aGAGv6djOdpTP24LIQ/5L1n8nDi5W55Tnk9egnhB4dkNSFJVv9Atml2rhUgapmAfkhK3AqewB8VX5b8matGS68q/JXGFSKnBGB7SXiuf/XTSe2NVk/pCArtYWhiMk6tO0SySX8mVbtHkapCx2D5VeeFtT2hFJV1g=="
 )
 
 func sshLoadCertificate(c string) {
