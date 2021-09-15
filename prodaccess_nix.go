@@ -5,26 +5,21 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
-
-	"golang.org/x/sys/unix"
 )
 
 var (
-	sshPubKey       = flag.String("sshpubkey", "$HOME/.ssh/id_ecdsa.pub", "SSH public key to request signed")
-	sshCert         = flag.String("sshcert", "$HOME/.ssh/id_ecdsa-cert.pub", "SSH certificate to write")
+	sshPubKey       = flag.String("sshpubkey", "$HOME/.ssh/id_baffin_ecdsa.pub", "SSH public key to request signed")
+	sshCert         = flag.String("sshcert", "$HOME/.ssh/id_baffin_ecdsa-cert.pub", "SSH certificate to write")
 	sshKnownHosts   = flag.String("sshknownhosts", "$HOME/.ssh/known_hosts", "SSH known hosts file to use")
 	vaultTokenPath  = flag.String("vault_token", "$HOME/.vault-token", "Path to Vault token to update")
-	vmwareCertPath  = flag.String("vmware_cert_path", "$HOME/vmware-user.pfx", "Path to store VMware user certificate")
 	browserCertPath = flag.String("browser_cert_path", "$HOME/browser-user.pfx", "Path to store Browswer user certificate")
 
-	certAuthority = "@cert-authority *.event.dreamhack.se ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAC/xT7a8A4Gm1Tf0mpKstqncWsOZpGPKa0lqf7EuYSpWUnx5QLaiP2TcI80AELTw2gP9jzOkpN7/QO91V3edRXGLAGk3NiNZLqvJspYfAnEo9f3/E4GBZf4kcDC93+04SzbFg+qMY3iCmJNaIttUMdQwaR22c+HbOYhaGEFWN3OCa6Erw== vault@tech.dreamhack.se"
+	certAuthority = "@cert-authority *.baffinbay.network ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBACxPOI58VnccJOIdhKe3vax8JvXfstSZTc2861GWlKYoFWEMUHhCPvOxRphYyYsyBYF8ZI7+fO6chpF7I+Cpug1+AADRf1ADtmhTJxXbM8efqoI+PDCJi1noicAQw6t+Pf6oK0q/FERq/gGqV3bfOiz7iAIrxb8FiCvjGzf/fvg0ZvwoA=="
 )
 
 func sshLoadCertificate(c string) {
@@ -57,7 +52,7 @@ func sshLoadCertificate(c string) {
 
 	// OpenSSH requires adding the private key again to load certificates
 	pp := strings.TrimSuffix(cp, "-cert.pub")
-	exec.Command("/usr/bin/env", "ssh-add", "-c", pp).Run()
+	exec.Command("/usr/bin/env", "ssh-add", "-c", pp, "-t", "20").Run()
 }
 
 func sshGetPublicKey() (string, error) {
@@ -86,47 +81,6 @@ func hasKubectl() bool {
 	return true
 }
 
-func saveKubernetesCertificate(c string, k string) {
-	cf, _ := ioutil.TempFile("", "prodaccess-k8s")
-	kf, _ := ioutil.TempFile("", "prodaccess-k8s")
-	cf.Write([]byte(c))
-	kf.Write([]byte(k))
-	cp := cf.Name()
-	kp := kf.Name()
-	cf.Close()
-	kf.Close()
-
-	exec.Command("/usr/bin/env", "kubectl", "config", "set-credentials",
-		"dhtech", "--embed-certs=true",
-		fmt.Sprintf("--client-certificate=%s", cp),
-		fmt.Sprintf("--client-key=%s", kp)).Run()
-	os.Remove(cp)
-	os.Remove(kp)
-}
-
-func saveVmwareCertificate(c string, k string) {
-	cf, _ := ioutil.TempFile("", "prodaccess-vmware")
-	kf, _ := ioutil.TempFile("", "prodaccess-vmware")
-	cf.Write([]byte(c))
-	kf.Write([]byte(k))
-	cp := cf.Name()
-	kp := kf.Name()
-	defer os.Remove(cp)
-	defer os.Remove(kp)
-	cf.Close()
-	kf.Close()
-
-	fp := os.ExpandEnv(*vmwareCertPath)
-	os.Remove(fp)
-	os.OpenFile(fp, os.O_CREATE, 0600)
-	executeWithStdout("openssl", "pkcs12", "-export", "-password", "pass:", "-in", cp, "-inkey", kp, "-out", fp)
-	if isWSL() {
-		if err := importCertFromWSL(fp); err != nil {
-			log.Printf("Failed to import certificate: %v", err)
-		}
-	}
-}
-
 func saveBrowserCertificate(c string, k string) {
 	cf, _ := ioutil.TempFile("", "prodaccess-browser")
 	kf, _ := ioutil.TempFile("", "prodaccess-browser")
@@ -143,17 +97,6 @@ func saveBrowserCertificate(c string, k string) {
 	os.Remove(fp)
 	os.OpenFile(fp, os.O_CREATE, 0600)
 	executeWithStdout("openssl", "pkcs12", "-export", "-password", "pass:", "-in", cp, "-inkey", kp, "-out", fp)
-	if isWSL() {
-		if err := importCertFromWSL(fp); err != nil {
-			log.Printf("Failed to import certificate: %v", err)
-		}
-	}
-}
-
-func isWSL() bool {
-	u := unix.Utsname{}
-	_ = unix.Uname(&u)
-	return strings.Contains(string(u.Release[:]), "Microsoft")
 }
 
 func executeWithStdout(cmd ...string) (string, error) {
@@ -179,40 +122,4 @@ func executeWithStdoutWithStdin(stdin string, cmd ...string) (string, error) {
 func executeWithStdin(stdin string, cmd ...string) error {
 	_, err := executeWithStdoutWithStdin(stdin, cmd...)
 	return err
-}
-
-// If running under WSL invoke PowerShell to import certificate
-func importCertFromWSL(pfx string) error {
-	winpath, err := executeWithStdout("powershell.exe", "echo $env:TEMP")
-	if err != nil {
-		return err
-	}
-
-	winpath = strings.Trim(winpath, "\r\n")
-	winparts := strings.Split(winpath, "\\")
-	drive := strings.ToLower(winparts[0][:1])
-	winparts = winparts[1:]
-	temppath := path.Join("/mnt", drive, path.Join(winparts...), "prodaccess.pfx")
-
-	pfxdata, err := ioutil.ReadFile(pfx)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(temppath, pfxdata, 0644)
-	if err != nil {
-		return err
-	}
-	defer os.Remove(temppath)
-
-	ps := fmt.Sprintf(psImport, winpath+"\\prodaccess.pfx")
-	fmt.Printf("%s\n", ps)
-	o, err := executeWithStdoutWithStdin(ps, "powershell.exe", "-Command", "-")
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Imported certificate: %s", o)
-
-	return executeWithStdin(psPurge, "powershell.exe", "-Command", "-")
 }

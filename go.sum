@@ -1,13 +1,13 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/baffinbay/proto v0.0.0-20210914144723-74914933cf7f h1:YQyonErXcGpbkUys293zx5JU9GUZ2ZSkMSVq8OYBc8M=
+github.com/baffinbay/proto v0.0.0-20210914144723-74914933cf7f/go.mod h1:a3jhkSESgpTCAaC52NQblCDyjHngG3D9GKApneijFVk=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dhtech/go-openurl v0.0.0-20190402213004-bc31949da121 h1:zUbrLq/SZKPqKpzRZT6YO3IUBqgEMddb9TYHOlu3MQQ=
 github.com/dhtech/go-openurl v0.0.0-20190402213004-bc31949da121/go.mod h1:fqwwzgU3y+YEhWJ8zgFj2MU1F8mNzWJdEXpOs4A85BM=
-github.com/dhtech/proto v0.0.0-20190504192043-fe1feafd906e h1:XQQ2PFkvw26ewVdJQ+ziW0Q0KFE2gv8XVLfkgrg+4p0=
-github.com/dhtech/proto v0.0.0-20190504192043-fe1feafd906e/go.mod h1:W6uEO+A9H7a90WxXdYTECRnlUXNBXehRsZ3Pjfv/eq8=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d/go.mod h1:cXg6YxExXjJnVBQHBLXeUAgxn2UodCpnH306RInaBQk=

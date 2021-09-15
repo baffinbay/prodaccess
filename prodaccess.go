@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -17,7 +16,7 @@ import (
 	"time"
 
 	url "github.com/dhtech/go-openurl"
-	pb "github.com/dhtech/proto/auth"
+	pb "github.com/baffinbay/proto/auth"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -25,13 +24,12 @@ import (
 )
 
 var (
-	grpcService   = flag.String("grpc", "auth.tech.dreamhack.se:443", "Authentication server to use")
-	tlsServerName = flag.String("server_name", "auth.tech.dreamhack.se", "TLS server name to verify")
+	grpcService   = flag.String("grpc", "PLACEHOLDER_CHANGE_ME", "Authentication server to use")
+	tlsServerName = flag.String("server_name", "PLACEHOLDER_CHANGE_ME", "TLS server name to verify")
 	useTLS        = flag.Bool("tls", true, "Whether or not to use TLS for the GRPC connection")
-	webURL        = flag.String("web", "https://auth.tech.dreamhack.se", "Domain to reply to ident requests from")
+	webURL        = flag.String("web", "https://PLACEHOLDER_CHANGE_ME", "Domain to reply to ident requests from")
 	// TODO(bluecmd): This should be automatic
 	requestBrowser = flag.Bool("browser", false, "Whether or not to request a browser certificate")
-	rsaKeySize     = flag.Int("rsa_key_size", 4096, "When generating RSA keys, use this key size")
 	ident          = ""
 )
 
@@ -72,27 +70,6 @@ func generateEcdsaCsr() (string, string, error) {
 	tmpl := x509.CertificateRequest{
 		Subject:            subj,
 		SignatureAlgorithm: x509.ECDSAWithSHA256,
-	}
-	csrb, _ := x509.CreateCertificateRequest(rand.Reader, &tmpl, keyb)
-	pemBlob := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrb})
-
-	return string(keyPemBlob), string(pemBlob), nil
-}
-
-func generateRsaCsr() (string, string, error) {
-	keyb, err := rsa.GenerateKey(rand.Reader, *rsaKeySize)
-	if err != nil {
-		return "", "", err
-	}
-	asnKey := x509.MarshalPKCS1PrivateKey(keyb)
-	keyPemBlob := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: asnKey})
-
-	subj := pkix.Name{
-		CommonName: "replaced-by-the-server",
-	}
-	tmpl := x509.CertificateRequest{
-		Subject:            subj,
-		SignatureAlgorithm: x509.SHA256WithRSA,
 	}
 	csrb, _ := x509.CreateCertificateRequest(rand.Reader, &tmpl, keyb)
 	pemBlob := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrb})
