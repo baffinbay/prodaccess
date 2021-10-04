@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	sshPubKey       = flag.String("sshpubkey", "$HOME/.ssh/id_baffin_ecdsa.pub", "SSH public key to request signed")
-	sshCert         = flag.String("sshcert", "$HOME/.ssh/id_baffin_ecdsa-cert.pub", "SSH certificate to write")
+	sshPubKey       = flag.String("sshpubkey", "$HOME/.ssh/id_ecdsa_prodaccess.pub", "SSH public key to request signed")
+	sshCert         = flag.String("sshcert", "$HOME/.ssh/id_ecdsa_prodaccess-cert.pub", "SSH certificate to write")
 	sshKnownHosts   = flag.String("sshknownhosts", "$HOME/.ssh/known_hosts", "SSH known hosts file to use")
 	vaultTokenPath  = flag.String("vault_token", "$HOME/.vault-token", "Path to Vault token to update")
 	browserCertPath = flag.String("browser_cert_path", "$HOME/browser-user.pfx", "Path to store Browswer user certificate")
