@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	url "github.com/dhtech/go-openurl"
+	url "github.com/baffinbay/go-openurl"
 	pb "github.com/baffinbay/proto/auth"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
