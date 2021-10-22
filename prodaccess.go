@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	url "github.com/baffinbay/go-openurl"
 	pb "github.com/baffinbay/proto/auth"
 	"github.com/google/uuid"
 	"golang.org/x/net/context"
@@ -31,6 +30,8 @@ var (
 	// TODO(bluecmd): This should be automatic
 	requestBrowser = flag.Bool("browser", false, "Whether or not to request a browser certificate")
 	ident          = ""
+	forceChrome    = flag.Bool("chrome", false, "Forces chrome for authentication dialog")
+	forceFirefox   = flag.Bool("firefox", false, "Forces firefox for authentication dialog")
 )
 
 func presentIdent(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +151,11 @@ func main() {
 		}
 		if response.RequiredAction != nil {
 			log.Printf("Required action: %v", response.RequiredAction)
-			url.Open(*webURL + response.RequiredAction.Url)
+			err := urlOpen(*webURL + response.RequiredAction.Url)
+			if err != nil {
+				log.Printf("Failed to open browser.")
+				return
+			}
 		} else {
 			break
 		}

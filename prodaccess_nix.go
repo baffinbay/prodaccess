@@ -1,5 +1,3 @@
-// +build freebsd linux darwin
-
 package main
 
 import (
@@ -121,5 +119,17 @@ func executeWithStdoutWithStdin(stdin string, cmd ...string) (string, error) {
 
 func executeWithStdin(stdin string, cmd ...string) error {
 	_, err := executeWithStdoutWithStdin(stdin, cmd...)
+	return err
+}
+
+func urlOpen(url string) error {
+	var err error
+	if *forceChrome {
+		err = exec.Command("/usr/bin/open", "-a", "Google Chrome", url).Run()
+	} else if *forceFirefox {
+		err = exec.Command("/usr/bin/open", "-a", "Firefox", url).Run()
+	} else {
+		err = exec.Command("/usr/bin/open", url).Run()
+	}
 	return err
 }
