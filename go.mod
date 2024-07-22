@@ -1,6 +1,6 @@
 module github.com/baffinbay/prodaccess
 
-go 1.19
+go 1.22.4
 
 require (
 	github.com/baffinbay/proto v0.0.0-20210914144723-74914933cf7f
